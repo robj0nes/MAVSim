@@ -119,7 +119,7 @@ class DrawMav:
                            ]).T
 
         # scale points for better rendering
-        scale = 5
+        scale = 1
         points = scale * points
         #   define the colors for each face of triangular mesh
         red = np.array([1., 0., 0., 1])
