@@ -94,6 +94,10 @@ class MavDynamics:
 
         phi, theta, psi = Quaternion2Euler(state[6:10])
         quaternionAngles = np.array([state.item(6), state.item(7), state.item(8), state.item(9)])
+        e0 = quaternionAngles[0]
+        ex = quaternionAngles[1]
+        ey = quaternionAngles[2]
+        ez = quaternionAngles[3]
 
         pqr = np.array([state.item(10), state.item(11), state.item(12)])
 
@@ -110,15 +114,24 @@ class MavDynamics:
 
 
         # Position Kinematics
-        rotationMatrix = np.array(
-            [
-                [np.cos(theta) * np.cos(psi), np.sin(phi) * np.sin(theta) * np.cos(psi) - np.cos(phi) * np.sin(psi),
-                 np.cos(phi) * np.sin(theta) * np.cos(psi) + np.sin(phi) * np.sin(psi)],
+        # 3-angle rotation method.
+        # rotationMatrix = np.array(
+        #     [
+        #         [np.cos(theta) * np.cos(psi), np.sin(phi) * np.sin(theta) * np.cos(psi) - np.cos(phi) * np.sin(psi),
+        #          np.cos(phi) * np.sin(theta) * np.cos(psi) + np.sin(phi) * np.sin(psi)],
+        #
+        #         [np.cos(theta) * np.sin(psi), np.sin(phi) * np.sin(theta) * np.sin(psi) + np.cos(phi) * np.cos(psi),
+        #          np.cos(phi) * np.sin(theta) * np.sin(psi) - np.sin(phi) * np.cos(psi)],
+        #
+        #         [-np.sin(theta), np.sin(phi) * np.cos(theta), np.cos(phi) * np.cos(theta)]])
 
-                [np.cos(theta) * np.sin(psi), np.sin(phi) * np.sin(theta) * np.sin(psi) + np.cos(phi) * np.cos(psi),
-                 np.cos(phi) * np.sin(theta) * np.sin(psi) - np.sin(phi) * np.cos(psi)],
 
-                [-np.sin(theta), np.sin(phi) * np.cos(theta), np.cos(phi) * np.cos(theta)]])
+        # Uses the quaternion rotation.
+        rotationMatrix = np.array([
+            [e0**2 + ex**2 - ey**2 - ez**2, 2 * (ex * ey - e0 * ez), 2 * (ex * ez + e0 * ey)],
+            [2 * (ex * ey + e0 * ez), e0**2 - ex**2 + ey**2 - ez**2, 2 * (ey * ez - e0 * ex)],
+            [2 * (ex * ez - e0 * ey), 2 * (ey * ez + e0 * ex), e0**2 - ex**2 - ey**2 + ez**2]
+        ])
 
         position_derivative = np.matmul(rotationMatrix, uvw)
         n_dot = position_derivative[0]
